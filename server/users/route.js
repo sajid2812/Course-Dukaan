@@ -80,8 +80,4 @@ router.post("/login", async (req, res) => {
   });
 });
 
-router.post("/purchase", auth, async (req, res) => {});
-
-router.get("/list", auth, async (req, res) => {});
-
 module.exports = router;

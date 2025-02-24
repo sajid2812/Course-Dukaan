@@ -13,10 +13,9 @@ const courseSchema = new mongoose.Schema(
     duration: {
       type: Number,
     },
-    instructorName: {
-      type: String,
-      required: true,
-      trim: true,
+    instructor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
     },
   },
   {
