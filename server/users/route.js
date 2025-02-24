@@ -6,6 +6,7 @@ const express = require("express");
 const router = express.Router();
 const { auth } = require("../middlewares/auth");
 const User = require("./schema.js");
+const Purchase = require("../purchases/schema.js");
 
 router.post("/signup", async (req, res) => {
   try {
@@ -78,6 +79,24 @@ router.post("/login", async (req, res) => {
   return res.status(200).json({
     token,
   });
+});
+
+router.get("/purchases", auth, async (req, res) => {
+  try {
+    const purchases = await Purchase.find(
+      {
+        user: req.user._id,
+      },
+      {
+        course: 1,
+      }
+    ).populate("course", "title");
+    return res.status(200).json(purchases);
+  } catch (e) {
+    return res.status(400).json({
+      message: "Fetching purchases list failed",
+    });
+  }
 });
 
 module.exports = router;
