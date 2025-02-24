@@ -34,7 +34,26 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-router.get("/:id", auth, async (req, res) => {});
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const course = await Course.findOne(
+      {
+        _id: req.params.id,
+      },
+      {
+        title: 1,
+        price: 1,
+        duration: 1,
+        instructor: 1,
+      }
+    ).populate("instructor", "name");
+    return res.status(200).json(course);
+  } catch (e) {
+    return res.status(400).json({
+      message: "Fetching course details failed",
+    });
+  }
+});
 
 router.delete("/:id", auth, async (req, res) => {
   try {
