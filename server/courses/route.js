@@ -34,6 +34,8 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+router.get("/:id", auth, async (req, res) => {});
+
 router.delete("/:id", auth, async (req, res) => {
   try {
     await Course.deleteOne({
