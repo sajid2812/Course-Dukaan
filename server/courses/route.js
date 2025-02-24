@@ -8,7 +8,7 @@ router.post("/", auth, async (req, res) => {
   try {
     const requiredBody = z.object({
       title: z.string().min(3).max(30),
-      price: z.number().max(10),
+      price: z.number().max(1000000),
       duration: z.number(),
     });
     const { success, error } = requiredBody.safeParse(req.body);
@@ -54,7 +54,7 @@ router.put("/", auth, async (req, res) => {
     const requiredBody = z.object({
       _id: z.string(),
       title: z.string().min(3).max(30),
-      price: z.number().max(10),
+      price: z.number().max(1000000),
       duration: z.number(),
     });
     const { success, error } = requiredBody.safeParse(req.body);

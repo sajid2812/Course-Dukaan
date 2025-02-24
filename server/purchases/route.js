@@ -9,7 +9,7 @@ router.post("/", auth, async (req, res) => {
     const requiredBody = z.object({
       course: z.string(),
       paymentMode: z.string(),
-      amount: z.number().max(10),
+      amount: z.number().max(1000000),
     });
     const { success, error } = requiredBody.safeParse(req.body);
     if (!success) {
