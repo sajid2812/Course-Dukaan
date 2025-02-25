@@ -1,15 +1,17 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET;
 
-function auth(req, res, next) {
+function userMiddleware(req, res, next) {
   try {
     if (!req.headers.token) {
       return res.status(401).json({
         message: "Invalid Token.",
       });
     }
-    const decodedInfo = jwt.verify(req.headers.token, JWT_SECRET);
+    const decodedInfo = jwt.verify(
+      req.headers.token,
+      process.env.USER_JWT_SECRET
+    );
     req.user = decodedInfo;
     next();
   } catch (e) {
@@ -19,4 +21,4 @@ function auth(req, res, next) {
   }
 }
 
-module.exports = { auth };
+module.exports = { userMiddleware };
