@@ -44,42 +44,48 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const requiredBody = z.object({
-    email: z.string().min(3).max(50).email(),
-    password: z.string().min(3).max(20),
-  });
-  const { success, error } = requiredBody.safeParse(req.body);
-  if (!success) {
-    return res.status(400).json({
-      message: "Incorrect Input Format",
-      error: error,
+  try {
+    const { email, password } = req.body;
+    const requiredBody = z.object({
+      email: z.string().min(3).max(50).email(),
+      password: z.string().min(3).max(20),
     });
-  }
-  const user = await User.findOne({
-    email: email,
-  });
-  if (!user) {
+    const { success, error } = requiredBody.safeParse(req.body);
+    if (!success) {
+      return res.status(400).json({
+        message: "Incorrect Input Format",
+        error: error,
+      });
+    }
+    const user = await User.findOne({
+      email: email,
+    });
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid Credentials",
+      });
+    }
+    const passwordMatched = await bcrypt.compare(password, user.password);
+    if (!passwordMatched) {
+      return res.status(401).json({
+        message: "Invalid Credentials",
+      });
+    }
+    const token = jwt.sign(
+      {
+        _id: user._id,
+      },
+      process.env.USER_JWT_SECRET
+    );
+    // Do cookie logic
+    return res.status(200).json({
+      token,
+    });
+  } catch (e) {
     return res.status(401).json({
       message: "Invalid Credentials",
     });
   }
-  const passwordMatched = await bcrypt.compare(password, user.password);
-  if (!passwordMatched) {
-    return res.status(401).json({
-      message: "Invalid Credentials",
-    });
-  }
-  const token = jwt.sign(
-    {
-      _id: user._id,
-    },
-    process.env.JWT_SECRET
-  );
-  // Do cookie logic
-  return res.status(200).json({
-    token,
-  });
 });
 
 router.get("/purchases", auth, async (req, res) => {

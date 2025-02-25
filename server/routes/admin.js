@@ -12,9 +12,10 @@ const router = Router();
 
 router.post("/signup", async (req, res) => {
   try {
+    const { firstName, lastName, email, password } = req.body;
     const requiredBody = z.object({
-      username: z.string().min(3).max(30),
-      name: z.string().min(3).max(50),
+      firstName: z.string().min(3).max(30),
+      lastName: z.string().min(3).max(30),
       email: z.string().min(3).max(50).email(),
       password: z.string().min(3).max(20),
     });
@@ -25,11 +26,11 @@ router.post("/signup", async (req, res) => {
         error: error,
       });
     }
-    const hashedPassword = await bcrypt.hash(req.body.password, 5);
+    const hashedPassword = await bcrypt.hash(password, 5);
     await Admin.create({
-      username: req.body.username,
-      name: req.body.name,
-      email: req.body.email,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
       password: hashedPassword,
     });
     return res.status(200).json({
@@ -43,43 +44,48 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const requiredBody = z.object({
-    email: z.string().min(3).max(50).email(),
-    password: z.string().min(3).max(20),
-  });
-  const { success, error } = requiredBody.safeParse(req.body);
-  if (!success) {
-    return res.status(400).json({
-      message: "Incorrect Input Format",
-      error: error,
+  try {
+    const { email, password } = req.body;
+    const requiredBody = z.object({
+      email: z.string().min(3).max(50).email(),
+      password: z.string().min(3).max(20),
     });
-  }
-  const user = await Admin.findOne({
-    email: req.body.email,
-  });
-  if (!user) {
+    const { success, error } = requiredBody.safeParse(req.body);
+    if (!success) {
+      return res.status(400).json({
+        message: "Incorrect Input Format",
+        error: error,
+      });
+    }
+    const admin = await Admin.findOne({
+      email: email,
+    });
+    if (!admin) {
+      return res.status(401).json({
+        message: "Invalid Credentials",
+      });
+    }
+    const passwordMatched = await bcrypt.compare(password, admin.password);
+    if (!passwordMatched) {
+      return res.status(401).json({
+        message: "Invalid Credentials",
+      });
+    }
+    const token = jwt.sign(
+      {
+        _id: admin._id,
+      },
+      process.env.ADMIN_JWT_SECRET
+    );
+    // Do cookie logic
+    return res.status(200).json({
+      token,
+    });
+  } catch (e) {
     return res.status(401).json({
       message: "Invalid Credentials",
     });
   }
-  const passwordMatched = await bcrypt.compare(
-    req.body.password,
-    user.password
-  );
-  if (!passwordMatched) {
-    return res.status(401).json({
-      message: "Invalid Credentials",
-    });
-  }
-  const token = jwt.sign(
-    {
-      _id: user._id,
-    },
-    process.env.JWT_SECRET
-  );
-  return res.status(200).json({
-    token,
-  });
 });
 
 router.post("/course", auth, async (req, res) => {
