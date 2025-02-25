@@ -5,8 +5,8 @@ const { Router } = require("express");
 const { z } = require("zod");
 
 const { auth } = require("../middlewares/auth.js");
-const User = require("../users/schema.js");
-const Purchase = require("../purchases/schema.js");
+const User = require("../schemas/user.js");
+const Purchase = require("../schemas/purchase.js");
 
 const router = Router();
 

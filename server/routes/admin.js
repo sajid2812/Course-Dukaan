@@ -5,8 +5,8 @@ const { Router } = require("express");
 const { z } = require("zod");
 
 const { auth } = require("../middlewares/auth.js");
-const Admin = require("../admin/schema.js");
-const Course = require("../courses/schema.js");
+const Admin = require("../schemas/admin.js");
+const Course = require("../schemas/course.js");
 
 router.post("/signup", async (req, res) => {
   try {

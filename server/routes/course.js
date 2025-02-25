@@ -2,7 +2,7 @@ const { Router } = require("express");
 const { z } = require("zod");
 
 const { auth } = require("../middlewares/auth.js");
-const Course = require("../courses/schema.js");
+const Course = require("../schemas/course.js");
 
 const router = Router();
 
