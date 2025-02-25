@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const { Router } = require("express");
 const { z } = require("zod");
 
-const { auth } = require("../middlewares/auth.js");
+const { userMiddleware } = require("../middlewares/user.js");
 const User = require("../schemas/user.js");
 const Purchase = require("../schemas/purchase.js");
 
@@ -88,7 +88,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/purchases", auth, async (req, res) => {
+router.get("/purchases", userMiddleware, async (req, res) => {
   try {
     const purchases = await Purchase.find(
       {

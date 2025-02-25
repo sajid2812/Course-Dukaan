@@ -1,38 +1,16 @@
 const { Router } = require("express");
 const { z } = require("zod");
 
-const { auth } = require("../middlewares/auth.js");
+const { userMiddleware } = require("../middlewares/user.js");
+const Purchase = require("../schemas/purchase.js");
 const Course = require("../schemas/course.js");
 
 const router = Router();
 
-router.get("/:id", auth, async (req, res) => {
-  try {
-    const course = await Course.findOne(
-      {
-        _id: req.params.id,
-      },
-      {
-        title: 1,
-        price: 1,
-        duration: 1,
-        instructor: 1,
-      }
-    ).populate("instructor", "name");
-    return res.status(200).json(course);
-  } catch (e) {
-    return res.status(400).json({
-      message: "Fetching course details failed",
-    });
-  }
-});
-
-router.post("/purchase", auth, async (req, res) => {
+router.post("/purchase", userMiddleware, async (req, res) => {
   try {
     const requiredBody = z.object({
       course: z.string(),
-      paymentMode: z.string(),
-      amount: z.number().max(1000000),
     });
     const { success, error } = requiredBody.safeParse(req.body);
     if (!success) {
@@ -44,9 +22,6 @@ router.post("/purchase", auth, async (req, res) => {
     await Purchase.create({
       course: req.body.course,
       user: req.user._id,
-      date: new Date(),
-      paymentMode: req.body.paymentMode,
-      amount: req.body.amount,
     });
     return res
       .status(200)
@@ -54,6 +29,26 @@ router.post("/purchase", auth, async (req, res) => {
   } catch (e) {
     return res.status(400).json({
       message: "Course purchase failed",
+    });
+  }
+});
+
+router.get("/preview", async (req, res) => {
+  try {
+    const courses = await Course.find(
+      {},
+      {
+        title: 1,
+        description: 1,
+        price: 1,
+        imageUrl: 1,
+        creator: 1,
+      }
+    ).populate("creator", "name");
+    return res.status(200).json(courses);
+  } catch (e) {
+    return res.status(400).json({
+      message: "Fetching course details failed",
     });
   }
 });

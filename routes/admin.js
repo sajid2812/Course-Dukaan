@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const { Router } = require("express");
 const { z } = require("zod");
 
-const { auth } = require("../middlewares/auth.js");
+const { adminMiddleware } = require("../middlewares/admin.js");
 const Admin = require("../schemas/admin.js");
 const Course = require("../schemas/course.js");
 
@@ -88,12 +88,14 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/course", auth, async (req, res) => {
+router.post("/course", adminMiddleware, async (req, res) => {
   try {
+    const { title, description, price, imageUrl } = req.body;
     const requiredBody = z.object({
       title: z.string().min(3).max(30),
+      description: z.string().min(3).max(1000),
       price: z.number().max(1000000),
-      duration: z.number(),
+      imageUrl: z.string(),
     });
     const { success, error } = requiredBody.safeParse(req.body);
     if (!success) {
@@ -102,14 +104,16 @@ router.post("/course", auth, async (req, res) => {
         error: error,
       });
     }
-    await Course.create({
-      title: req.body.title,
-      price: req.body.price,
-      duration: req.body.duration,
-      instructor: req.user._id,
+    const course = await Course.create({
+      title: title,
+      description: description,
+      price: price,
+      imageUrl: imageUrl,
+      creator: req.user._id,
     });
     return res.status(200).json({
       message: "Course has been created successfully",
+      courseId: course._id,
     });
   } catch (e) {
     return res.status(400).json({
@@ -118,28 +122,13 @@ router.post("/course", auth, async (req, res) => {
   }
 });
 
-router.delete("/course/:id", auth, async (req, res) => {
-  try {
-    await Course.deleteOne({
-      _id: req.params.id,
-    });
-    return res.status(200).json({
-      message: "Course has been deleted successfully",
-    });
-  } catch (e) {
-    return res.status(400).json({
-      message: "Course deletion failed",
-    });
-  }
-});
-
-router.put("/course", auth, async (req, res) => {
+router.put("/course", adminMiddleware, async (req, res) => {
   try {
     const requiredBody = z.object({
-      _id: z.string(),
       title: z.string().min(3).max(30),
+      description: z.string().min(3).max(1000),
       price: z.number().max(1000000),
-      duration: z.number(),
+      imageUrl: z.string(),
     });
     const { success, error } = requiredBody.safeParse(req.body);
     if (!success) {
@@ -148,9 +137,10 @@ router.put("/course", auth, async (req, res) => {
         error: error,
       });
     }
-    await Course.findOneAndUpdate(
+    await Course.updateOne(
       {
         _id: req.body._id,
+        creator: req.user._id,
       },
       {
         $set: req.body,
@@ -166,21 +156,36 @@ router.put("/course", auth, async (req, res) => {
   }
 });
 
-router.get("/course/list", auth, async (req, res) => {
+router.get("/course/list", adminMiddleware, async (req, res) => {
   try {
     const courses = await Course.find(
-      {},
+      { creator: req.user._id },
       {
         title: 1,
+        description: 1,
         price: 1,
-        duration: 1,
-        instructor: 1,
+        imageUrl: 1,
       }
-    ).populate("instructor", "name");
+    );
     return res.status(200).json(courses);
   } catch (e) {
     return res.status(400).json({
       message: "Fetching courses list failed",
+    });
+  }
+});
+
+router.delete("/course/:id", adminMiddleware, async (req, res) => {
+  try {
+    await Course.deleteOne({
+      _id: req.params.id,
+    });
+    return res.status(200).json({
+      message: "Course has been deleted successfully",
+    });
+  } catch (e) {
+    return res.status(400).json({
+      message: "Course deletion failed",
     });
   }
 });
