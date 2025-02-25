@@ -12,9 +12,10 @@ const router = Router();
 
 router.post("/signup", async (req, res) => {
   try {
+    const { firstName, lastName, email, password } = req.body;
     const requiredBody = z.object({
-      username: z.string().min(3).max(30),
-      name: z.string().min(3).max(50),
+      firstName: z.string().min(3).max(30),
+      lastName: z.string().min(3).max(30),
       email: z.string().min(3).max(50).email(),
       password: z.string().min(3).max(20),
     });
@@ -25,11 +26,11 @@ router.post("/signup", async (req, res) => {
         error: error,
       });
     }
-    const hashedPassword = await bcrypt.hash(req.body.password, 5);
+    const hashedPassword = await bcrypt.hash(password, 5);
     await User.create({
-      username: req.body.username,
-      name: req.body.name,
-      email: req.body.email,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
       password: hashedPassword,
     });
     return res.status(200).json({
@@ -43,6 +44,7 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
   const requiredBody = z.object({
     email: z.string().min(3).max(50).email(),
     password: z.string().min(3).max(20),
@@ -55,17 +57,14 @@ router.post("/login", async (req, res) => {
     });
   }
   const user = await User.findOne({
-    email: req.body.email,
+    email: email,
   });
   if (!user) {
     return res.status(401).json({
       message: "Invalid Credentials",
     });
   }
-  const passwordMatched = await bcrypt.compare(
-    req.body.password,
-    user.password
-  );
+  const passwordMatched = await bcrypt.compare(password, user.password);
   if (!passwordMatched) {
     return res.status(401).json({
       message: "Invalid Credentials",
@@ -74,10 +73,10 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign(
     {
       _id: user._id,
-      role: "User",
     },
     process.env.JWT_SECRET
   );
+  // Do cookie logic
   return res.status(200).json({
     token,
   });
