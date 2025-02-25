@@ -1,11 +1,14 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const { z } = require("zod");
 const jwt = require("jsonwebtoken");
-const express = require("express");
-const router = express.Router();
-const { auth } = require("../middlewares/auth");
-const Admin = require("./schema.js");
+const { Router } = require("express");
+const { z } = require("zod");
+
+const { auth } = require("../middlewares/auth.js");
+const User = require("../users/schema.js");
+const Purchase = require("../purchases/schema.js");
+
+const router = Router();
 
 router.post("/signup", async (req, res) => {
   try {
@@ -23,7 +26,7 @@ router.post("/signup", async (req, res) => {
       });
     }
     const hashedPassword = await bcrypt.hash(req.body.password, 5);
-    await Admin.create({
+    await User.create({
       username: req.body.username,
       name: req.body.name,
       email: req.body.email,
@@ -34,7 +37,7 @@ router.post("/signup", async (req, res) => {
     });
   } catch (e) {
     return res.status(400).json({
-      message: "Admin already exists",
+      message: "User already exists",
     });
   }
 });
@@ -51,7 +54,7 @@ router.post("/login", async (req, res) => {
       error: error,
     });
   }
-  const user = await Admin.findOne({
+  const user = await User.findOne({
     email: req.body.email,
   });
   if (!user) {
@@ -71,7 +74,7 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign(
     {
       _id: user._id,
-      role: "Admin",
+      role: "User",
     },
     process.env.JWT_SECRET
   );
@@ -80,4 +83,22 @@ router.post("/login", async (req, res) => {
   });
 });
 
-module.exports = router;
+router.get("/purchases", auth, async (req, res) => {
+  try {
+    const purchases = await Purchase.find(
+      {
+        user: req.user._id,
+      },
+      {
+        course: 1,
+      }
+    ).populate("course", "title");
+    return res.status(200).json(purchases);
+  } catch (e) {
+    return res.status(400).json({
+      message: "Fetching purchases list failed",
+    });
+  }
+});
+
+module.exports = { router };

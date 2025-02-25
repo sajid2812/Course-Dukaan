@@ -1,12 +1,11 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const { z } = require("zod");
 const jwt = require("jsonwebtoken");
-const express = require("express");
-const router = express.Router();
-const { auth } = require("../middlewares/auth");
-const User = require("./schema.js");
-const Purchase = require("../purchases/schema.js");
+const { Router } = require("express");
+const { z } = require("zod");
+
+const { auth } = require("../middlewares/auth.js");
+const Admin = require("../admin/schema.js");
 
 router.post("/signup", async (req, res) => {
   try {
@@ -24,7 +23,7 @@ router.post("/signup", async (req, res) => {
       });
     }
     const hashedPassword = await bcrypt.hash(req.body.password, 5);
-    await User.create({
+    await Admin.create({
       username: req.body.username,
       name: req.body.name,
       email: req.body.email,
@@ -35,7 +34,7 @@ router.post("/signup", async (req, res) => {
     });
   } catch (e) {
     return res.status(400).json({
-      message: "User already exists",
+      message: "Admin already exists",
     });
   }
 });
@@ -52,7 +51,7 @@ router.post("/login", async (req, res) => {
       error: error,
     });
   }
-  const user = await User.findOne({
+  const user = await Admin.findOne({
     email: req.body.email,
   });
   if (!user) {
@@ -72,7 +71,7 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign(
     {
       _id: user._id,
-      role: "User",
+      role: "Admin",
     },
     process.env.JWT_SECRET
   );
@@ -81,22 +80,6 @@ router.post("/login", async (req, res) => {
   });
 });
 
-router.get("/purchases", auth, async (req, res) => {
-  try {
-    const purchases = await Purchase.find(
-      {
-        user: req.user._id,
-      },
-      {
-        course: 1,
-      }
-    ).populate("course", "title");
-    return res.status(200).json(purchases);
-  } catch (e) {
-    return res.status(400).json({
-      message: "Fetching purchases list failed",
-    });
-  }
-});
+const router = Router();
 
-module.exports = router;
+module.exports = { router };
