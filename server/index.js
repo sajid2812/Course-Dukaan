@@ -16,9 +16,9 @@ async function startMongo() {
 
 app.use(express.json());
 
-app.use("/admin", adminRouter);
-app.use("/users", userRouter);
-app.use("/courses", courseRouter);
+app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/courses", courseRouter);
 
 app.listen(PORT, async () => {
   console.log(`Server is listening on PORT ${PORT}.`);
