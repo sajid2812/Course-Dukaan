@@ -1,19 +1,23 @@
-const mongoose = require("mongoose");
+const { Schema, model } = require("mongoose");
 
-const courseSchema = new mongoose.Schema(
+const courseSchema = new Schema(
   {
     title: {
       type: String,
       required: true,
       trim: true,
     },
+    description: {
+      type: String,
+      trim: true,
+    },
     price: {
       type: Number,
     },
-    duration: {
-      type: Number,
+    imageUrl: {
+      type: String,
     },
-    instructor: {
+    creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
     },
@@ -23,4 +27,4 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Course", courseSchema);
+module.exports = model("Course", courseSchema);

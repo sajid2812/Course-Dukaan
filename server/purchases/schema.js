@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+const { Schema, model } = require("mongoose");
 
-const purchaseSchema = new mongoose.Schema(
+const purchaseSchema = new Schema(
   {
     course: {
       type: mongoose.Schema.Types.ObjectId,
@@ -10,20 +10,10 @@ const purchaseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    date: {
-      type: Date,
-      required: true,
-    },
-    paymentMode: {
-      type: String,
-    },
-    amount: {
-      type: Number,
-    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Purchase", purchaseSchema);
+module.exports = model("Purchase", purchaseSchema);
