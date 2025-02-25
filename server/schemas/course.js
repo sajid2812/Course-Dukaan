@@ -18,7 +18,7 @@ const courseSchema = new Schema(
       type: String,
     },
     creator: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Admin",
     },
   },

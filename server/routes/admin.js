@@ -8,6 +8,8 @@ const { auth } = require("../middlewares/auth.js");
 const Admin = require("../schemas/admin.js");
 const Course = require("../schemas/course.js");
 
+const router = Router();
+
 router.post("/signup", async (req, res) => {
   try {
     const requiredBody = z.object({
@@ -177,7 +179,5 @@ router.get("/course/list", auth, async (req, res) => {
     });
   }
 });
-
-const router = Router();
 
 module.exports = router;
